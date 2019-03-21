@@ -8,34 +8,19 @@
  */
 
 const JULIUS_DAY_EPOCH = 2299160;
-
 const STEMS_MAPPING = ['giap', 'at', 'binh', 'dinh', 'mau', 'ky', 'canh', 'tan', 'nham', 'quy'];
-
-const BRANCHES_MAPPING = [
-  'tys',
-  'suu',
-  'dan',
-  'mao',
-  'thin',
-  'tyj',
-  'ngo',
-  'mui',
-  'than',
-  'dau',
-  'tuat',
-  'hoi',
-];
+const BRANCHES_MAPPING = ['tys', 'suu', 'dan', 'mao', 'thin', 'tyj', 'ngo', 'mui', 'than', 'dau', 'tuat', 'hoi'];
 
 /**
  * Compute the (integral) Julian day number of day dd/mm/yyyy, i.e., the number
  * of days between 1/1/4713 BC (Julian calendar) and dd/mm/yyyy.
  * Formula from http://www.tondering.dk/claus/calendar.html
  */
-function calJuliusDayFromDate(dd, mm, yy) {
-  const a = Math.floor((14 - mm) / 12);
-  const y = yy + 4800 - a;
-  const m = mm + 12 * a - 3;
-  let jd = dd
+function calJuliusDayFromDate(day, month, year) {
+  const a = Math.floor((14 - month) / 12);
+  const y = year + 4800 - a;
+  const m = month + 12 * a - 3;
+  let jd = day
     + Math.floor((153 * m + 2) / 5)
     + 365 * y
     + Math.floor(y / 4)
@@ -43,22 +28,19 @@ function calJuliusDayFromDate(dd, mm, yy) {
     + Math.floor(y / 400)
     - 32045;
 
-  if (jd < JULIUS_DAY_EPOCH + 1) {
-    jd = dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - 32083;
-  }
-
+  if (jd < JULIUS_DAY_EPOCH + 1) jd = day + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - 32083;
   return jd;
 }
 
 /**
  * Convert a Julian day number to day/month/year. Parameter jd is an integer
  */
-function jdToDate(jd) {
+function convertJuliusDayToDate(jd) {
   let a;
   let b;
   let c;
 
-  if (jd > 2299160) {
+  if (jd > JULIUS_DAY_EPOCH) {
     // After 5/10/1582, Gregorian calendar
     a = jd + 32044;
     b = Math.floor((4 * a + 3) / 146097);
@@ -85,7 +67,6 @@ function jdToDate(jd) {
  * Algorithm from: "Astronomical Algorithms" by Jean Meeus, 1998
  */
 function getNewMoon(k) {
-  let deltaT;
   const T = k / 1236.85; // Time in Julian centuries from 1900 January 0.5
   const T2 = T * T;
   const T3 = T2 * T;
@@ -114,17 +95,15 @@ function getNewMoon(k) {
   C1 = C1 - 0.0004 * Math.sin(dr * (2 * F - M)) - 0.0006 * Math.sin(dr * (2 * F + Mpr));
   C1 = C1 + 0.001 * Math.sin(dr * (2 * F - Mpr)) + 0.0005 * Math.sin(dr * (2 * Mpr + M));
 
-  if (T < -11) {
-    deltaT = 0.001 + 0.000839 * T + 0.0002261 * T2 - 0.00000845 * T3 - 0.000000081 * T * T3;
-  } else {
-    deltaT = -0.000278 + 0.000265 * T + 0.000262 * T2;
-  }
+  let deltaT = 0;
+  if (T < -11) deltaT = 0.001 + 0.000839 * T + 0.0002261 * T2 - 0.00000845 * T3 - 0.000000081 * T * T3;
+  else deltaT = -0.000278 + 0.000265 * T + 0.000262 * T2;
 
-  const JdNew = Jd1 + C1 - deltaT;
-  return JdNew;
+  return Jd1 + C1 - deltaT;
 }
 
-/* Compute the longitude of the sun at any time.
+/**
+ * Compute the longitude of the sun at any time.
  * Parameter: floating number jdn, the number of days since 1/1/4713 BC noon
  * Algorithm from: "Astronomical Algorithms" by Jean Meeus, 1998
  */
@@ -137,7 +116,8 @@ function SunLongitude(jdn) {
   const M = 357.5291 + 35999.0503 * T - 0.0001559 * T2 - 0.00000048 * T * T2;
   const L0 = 280.46645 + 36000.76983 * T + 0.0003032 * T2; // mean longitude, degree
   let DL = (1.9146 - 0.004817 * T - 0.000014 * T2) * Math.sin(dr * M);
-  DL = DL + (0.019993 - 0.000101 * T) * Math.sin(dr * 2 * M) + 0.00029 * Math.sin(dr * 3 * M);
+  DL += (0.019993 - 0.000101 * T) * Math.sin(dr * 2 * M) + 0.00029 * Math.sin(dr * 3 * M);
+
   let L = L0 + DL; // true longitude, degree
   L *= dr;
   L -= Math.PI * 2 * Math.floor(L / (Math.PI * 2)); // Normalize to (0, 2*Math.PI)
@@ -283,7 +263,7 @@ export function convertLunar2Solar(lunarDay, lunarMonth, lunarYear, lunarLeap, t
   }
 
   const monthStart = getNewMoonDay(k + off, timeZone);
-  return jdToDate(monthStart + lunarDay - 1);
+  return convertJuliusDayToDate(monthStart + lunarDay - 1);
 }
 
 function asserts() {
@@ -313,8 +293,7 @@ function asserts() {
     'Test case #5',
   );
   console.assert(
-    convertSolarToSexagenary(4, 20, 2, 1992, 7).join()
-      === ['nham than', 'nham dan', 'binh dan', 'canh dan'].join(),
+    convertSolarToSexagenary(4, 20, 2, 1992, 7).join() === ['nham than', 'nham dan', 'binh dan', 'canh dan'].join(),
     'Test case #6',
   );
   console.assert(
@@ -323,8 +302,7 @@ function asserts() {
     'Test case #7',
   );
   console.assert(
-    convertSolarToSexagenary(7, 20, 12, 1973, 7).join()
-      === ['quy suu', 'giap tys', 'canh dan', 'canh thin'].join(),
+    convertSolarToSexagenary(7, 20, 12, 1973, 7).join() === ['quy suu', 'giap tys', 'canh dan', 'canh thin'].join(),
     'Test case #8',
   );
   console.assert(

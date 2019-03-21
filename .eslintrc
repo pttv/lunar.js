@@ -10,6 +10,12 @@
     "arrow-parens": [
       "error",
       "as-needed"
+    ],
+    "max-len": [
+      "warn",
+      {
+        "code": 120
+      }
     ]
   }
 }
