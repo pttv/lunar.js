@@ -7,9 +7,9 @@
  * this copyright notice and appropriate documentation appears in all copies.
  */
 
+import { BRANCHES_MAPPING, STEMS_MAPPING } from './constants';
+
 const JULIUS_DAY_EPOCH = 2299160;
-const STEMS_MAPPING = ['giap', 'at', 'binh', 'dinh', 'mau', 'ky', 'canh', 'tan', 'nham', 'quy'];
-const BRANCHES_MAPPING = ['tys', 'suu', 'dan', 'mao', 'thin', 'tyj', 'ngo', 'mui', 'than', 'dau', 'tuat', 'hoi'];
 
 /**
  * Compute the (integral) Julian day number of day dd/mm/yyyy, i.e., the number
@@ -254,51 +254,3 @@ export function convertLunarToSolar(lunarDay, lunarMonth, lunarYear, lunarLeap, 
   const monthStart = computeNewMoonDay(k + off, timeZone);
   return convertJuliusDayToDate(monthStart + lunarDay - 1);
 }
-
-function asserts() {
-  console.assert(
-    convertSolarToSexagenary(7 + 15 / 60, 5, 1, 1996, 7).join()
-      === ['at hoi', 'mau tys', 'tan suu', 'nham thin'].join(),
-    'Test case #1',
-  );
-  console.assert(
-    convertSolarToSexagenary(21 + 5 / 60, 23, 12, 1994, 7).join()
-      === ['giap tuat', 'binh tys', 'quy mui', 'quy hoi'].join(),
-    'Test case #2',
-  );
-  console.assert(
-    convertSolarToSexagenary(17 + 5 / 60, 25, 4, 1993, 7).join()
-      === ['quy dau', 'binh thin', 'binh tys', 'dinh dau'].join(),
-    'Test case #3',
-  );
-  console.assert(
-    convertSolarToSexagenary(8 + 35 / 60, 28, 6, 1994, 7).join()
-      === ['giap tuat', 'canh ngo', 'at dau', 'canh thin'].join(),
-    'Test case #4',
-  );
-  console.assert(
-    convertSolarToSexagenary(7 + 5 / 60, 21, 8, 1995, 7).join()
-      === ['at hoi', 'giap than', 'giap than', 'mau thin'].join(),
-    'Test case #5',
-  );
-  console.assert(
-    convertSolarToSexagenary(4, 20, 2, 1992, 7).join() === ['nham than', 'nham dan', 'binh dan', 'canh dan'].join(),
-    'Test case #6',
-  );
-  console.assert(
-    convertSolarToSexagenary(22 + 25 / 60, 11, 11, 1999, 7).join()
-      === ['ky mao', 'at hoi', 'dinh mao', 'tan hoi'].join(),
-    'Test case #7',
-  );
-  console.assert(
-    convertSolarToSexagenary(7, 20, 12, 1973, 7).join() === ['quy suu', 'giap tys', 'canh dan', 'canh thin'].join(),
-    'Test case #8',
-  );
-  console.assert(
-    convertSolarToSexagenary(21 + 15 / 60, 10, 12, 1993, 7).join()
-      === ['quy dau', 'quy hoi', 'at suu', 'dinh hoi'].join(),
-    'Test case #9',
-  );
-}
-
-asserts();
