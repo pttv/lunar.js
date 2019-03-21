@@ -1,7 +1,7 @@
 {
   "name": "lunar.js",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "index.min.js",
   "license": "MIT",
   "scripts": {
     "build": "babel index.js -o index.es5.js && minify index.es5.js -o index.min.js",
