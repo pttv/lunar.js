@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "build": "babel index.js",
+    "build": "babel index.js -o index.es5.js",
     "test": "babel-node tests.js"
   },
   "devDependencies": {

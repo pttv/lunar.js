@@ -233,7 +233,7 @@ function convertSolarToSexagenary(hh, dd, mm, yy, timeZone) {
   var dayBranch = BRANCHES_MAPPING[(dayNumber + 1) % 12];
   var hourStem = STEMS_MAPPING[((dayNumber + 9) % 5 * 2 + lunarHour) % 10];
   var hourBranch = BRANCHES_MAPPING[lunarHour];
-  return [[yearStem, yearBranch], [monthStem, monthBranch], [dayStem, dayBranch], [hourStem, hourBranch]];
+  return [[hourStem, hourBranch], [dayStem, dayBranch], [monthStem, monthBranch], [yearStem, yearBranch]];
 }
 /* Convert a lunar date to the corresponding solar date */
 
