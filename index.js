@@ -7,6 +7,8 @@
  * this copyright notice and appropriate documentation appears in all copies.
  */
 
+const JULIUS_DAY_EPOCH = 2299160;
+
 const STEMS_MAPPING = ['giap', 'at', 'binh', 'dinh', 'mau', 'ky', 'canh', 'tan', 'nham', 'quy'];
 
 const BRANCHES_MAPPING = [
@@ -25,28 +27,26 @@ const BRANCHES_MAPPING = [
 ];
 
 /**
- * Discard the fractional part of a number, e.g., floor(3.2) = 3
- */
-const floor = date => Math.floor(date);
-
-/**
  * Compute the (integral) Julian day number of day dd/mm/yyyy, i.e., the number
  * of days between 1/1/4713 BC (Julian calendar) and dd/mm/yyyy.
  * Formula from http://www.tondering.dk/claus/calendar.html
  */
-function jdFromDate(dd, mm, yy) {
-  const a = floor((14 - mm) / 12);
+function calJuliusDayFromDate(dd, mm, yy) {
+  const a = Math.floor((14 - mm) / 12);
   const y = yy + 4800 - a;
   const m = mm + 12 * a - 3;
   let jd = dd
-    + floor((153 * m + 2) / 5)
+    + Math.floor((153 * m + 2) / 5)
     + 365 * y
-    + floor(y / 4)
-    - floor(y / 100)
-    + floor(y / 400)
+    + Math.floor(y / 4)
+    - Math.floor(y / 100)
+    + Math.floor(y / 400)
     - 32045;
 
-  if (jd < 2299161) jd = dd + floor((153 * m + 2) / 5) + 365 * y + floor(y / 4) - 32083;
+  if (jd < JULIUS_DAY_EPOCH + 1) {
+    jd = dd + Math.floor((153 * m + 2) / 5) + 365 * y + Math.floor(y / 4) - 32083;
+  }
+
   return jd;
 }
 
@@ -61,19 +61,19 @@ function jdToDate(jd) {
   if (jd > 2299160) {
     // After 5/10/1582, Gregorian calendar
     a = jd + 32044;
-    b = floor((4 * a + 3) / 146097);
-    c = a - floor((b * 146097) / 4);
+    b = Math.floor((4 * a + 3) / 146097);
+    c = a - Math.floor((b * 146097) / 4);
   } else {
     b = 0;
     c = jd + 32082;
   }
 
-  const d = floor((4 * c + 3) / 1461);
-  const e = c - floor((1461 * d) / 4);
-  const m = floor((5 * e + 2) / 153);
-  const day = e - floor((153 * m + 2) / 5) + 1;
-  const month = m + 3 - 12 * floor(m / 10);
-  const year = b * 100 + d - 4800 + floor(m / 10);
+  const d = Math.floor((4 * c + 3) / 1461);
+  const e = c - Math.floor((1461 * d) / 4);
+  const m = Math.floor((5 * e + 2) / 153);
+  const day = e - Math.floor((153 * m + 2) / 5) + 1;
+  const month = m + 3 - 12 * Math.floor(m / 10);
+  const year = b * 100 + d - 4800 + Math.floor(m / 10);
   return [day, month, year];
 }
 
@@ -140,7 +140,7 @@ function SunLongitude(jdn) {
   DL = DL + (0.019993 - 0.000101 * T) * Math.sin(dr * 2 * M) + 0.00029 * Math.sin(dr * 3 * M);
   let L = L0 + DL; // true longitude, degree
   L *= dr;
-  L -= Math.PI * 2 * floor(L / (Math.PI * 2)); // Normalize to (0, 2*Math.PI)
+  L -= Math.PI * 2 * Math.floor(L / (Math.PI * 2)); // Normalize to (0, 2*Math.PI)
   return L;
 }
 
@@ -151,21 +151,21 @@ function SunLongitude(jdn) {
  * After that, return 1, 2, 3 ...
  */
 function getSunLongitude(dayNumber, timeZone) {
-  return floor((SunLongitude(dayNumber - 0.5 - timeZone / 24) / Math.PI) * 6);
+  return Math.floor((SunLongitude(dayNumber - 0.5 - timeZone / 24) / Math.PI) * 6);
 }
 
 /* Compute the day of the k-th new moon in the given time zone.
  * The time zone if the time difference between local time and UTC: 7.0 for UTC+7:00
  */
 function getNewMoonDay(k, timeZone) {
-  return floor(getNewMoon(k) + 0.5 + timeZone / 24);
+  return Math.floor(getNewMoon(k) + 0.5 + timeZone / 24);
 }
 
 /* Find the day that starts the luner month 11 of the given year for the given time zone */
 function getLunarMonth11(yy, timeZone) {
-  // off = jdFromDate(31, 12, yy) - 2415021.076998695;
-  const off = jdFromDate(31, 12, yy) - 2415021;
-  const k = floor(off / 29.530588853);
+  // off = calJuliusDayFromDate(31, 12, yy) - 2415021.076998695;
+  const off = calJuliusDayFromDate(31, 12, yy) - 2415021;
+  const k = Math.floor(off / 29.530588853);
   let nm = getNewMoonDay(k, timeZone);
   const sunLong = getSunLongitude(nm, timeZone); // sun longitude at local midnight
   if (sunLong >= 9) nm = getNewMoonDay(k - 1, timeZone);
@@ -174,7 +174,7 @@ function getLunarMonth11(yy, timeZone) {
 
 /* Find the index of the leap month after the month starting on the day a11. */
 function getLeapMonthOffset(a11, timeZone) {
-  const k = floor((a11 - 2415021.076998695) / 29.530588853 + 0.5);
+  const k = Math.floor((a11 - 2415021.076998695) / 29.530588853 + 0.5);
   let last = 0;
   let i = 1; // We start with the month following lunar month 11
   let arc = getSunLongitude(getNewMoonDay(k + i, timeZone), timeZone);
@@ -194,8 +194,8 @@ function convertSolar2Lunar(hh, dd, mm, yy, timeZone) {
   let lunarMonth;
   let lunarYear;
   let lunarLeap;
-  const dayNumber = jdFromDate(dd, mm, yy);
-  const k = floor((dayNumber - 2415021.076998695) / 29.530588853);
+  const dayNumber = calJuliusDayFromDate(dd, mm, yy);
+  const k = Math.floor((dayNumber - 2415021.076998695) / 29.530588853);
   monthStart = getNewMoonDay(k + 1, timeZone);
   if (monthStart > dayNumber) {
     monthStart = getNewMoonDay(k, timeZone);
@@ -211,7 +211,7 @@ function convertSolar2Lunar(hh, dd, mm, yy, timeZone) {
     b11 = getLunarMonth11(yy + 1, timeZone);
   }
   const lunarDay = dayNumber - monthStart + 1;
-  const diff = floor((monthStart - a11) / 29);
+  const diff = Math.floor((monthStart - a11) / 29);
   lunarLeap = 0;
   lunarMonth = diff + 11;
   if (b11 - a11 > 365) {
@@ -228,12 +228,12 @@ function convertSolar2Lunar(hh, dd, mm, yy, timeZone) {
     lunarYear -= 1;
   }
 
-  const lunarHour = floor(((hh + 1) % 24) / 2);
+  const lunarHour = Math.floor(((hh + 1) % 24) / 2);
   return [lunarHour, lunarDay, lunarMonth, lunarYear, lunarLeap];
 }
 
 export function convertSolarToSexagenary(hh, dd, mm, yy, timeZone) {
-  const dayNumber = jdFromDate(dd, mm, yy);
+  const dayNumber = calJuliusDayFromDate(dd, mm, yy);
 
   /* eslint-disable no-unused-vars */
   const [lunarHour, lunarDay, lunarMonth, lunarYear] = convertSolar2Lunar(hh, dd, mm, yy, timeZone);
@@ -270,7 +270,7 @@ export function convertLunar2Solar(lunarDay, lunarMonth, lunarYear, lunarLeap, t
     b11 = getLunarMonth11(lunarYear + 1, timeZone);
   }
 
-  const k = floor(0.5 + (a11 - 2415021.076998695) / 29.530588853);
+  const k = Math.floor(0.5 + (a11 - 2415021.076998695) / 29.530588853);
   let off = lunarMonth - 11;
   if (off < 0) off += 12;
 
