@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "main": "index.min.js",
   "license": "MIT",
+  "repository": "git@github.com:pttv/lunar.js.git",
+  "author": "Ethan Nguyen <thanhnx.605@gmail.com>",
   "scripts": {
     "build": "babel index.js -o index.es5.js && minify index.es5.js -o index.min.js",
     "test": "babel-node tests.js"
