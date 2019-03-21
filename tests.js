@@ -1,4 +1,4 @@
-import { convertSolarToSexagenary } from './index';
+import { convertSolarToSexagenary } from './index.es5';
 
 const TEST_SUITS = [
   {
