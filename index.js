@@ -7,7 +7,8 @@
  * this copyright notice and appropriate documentation appears in all copies.
  */
 
-import { BRANCHES_MAPPING, STEMS_MAPPING } from './constants';
+export const BRANCHES_MAPPING = ['tys', 'suu', 'dan', 'mao', 'thin', 'tyj', 'ngo', 'mui', 'than', 'dau', 'tuat', 'hoi'];
+export const STEMS_MAPPING = ['giap', 'at', 'binh', 'dinh', 'mau', 'ky', 'canh', 'tan', 'nham', 'quy'];
 
 const JULIUS_DAY_EPOCH = 2299160;
 
@@ -218,12 +219,7 @@ export function convertSolarToSexagenary(hh, dd, mm, yy, timeZone) {
   const hourStem = STEMS_MAPPING[(((dayNumber + 9) % 5) * 2 + lunarHour) % 10];
   const hourBranch = BRANCHES_MAPPING[lunarHour];
 
-  return [
-    [yearStem, yearBranch].join(' '),
-    [monthStem, monthBranch].join(' '),
-    [dayStem, dayBranch].join(' '),
-    [hourStem, hourBranch].join(' '),
-  ];
+  return [[hourStem, hourBranch], [dayStem, dayBranch], [monthStem, monthBranch], [yearStem, yearBranch]];
 }
 
 /* Convert a lunar date to the corresponding solar date */
